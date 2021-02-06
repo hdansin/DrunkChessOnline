@@ -1,0 +1,20 @@
+{
+  "name": "onlinedrunkchess",
+  "version": "1.0.0",
+  "description": "Play drunk chess with friends",
+  "main": "index.js",
+  "scripts": {
+    "test": "node index.js"
+  },
+  "keywords": [
+    "chess",
+    "io"
+  ],
+  "author": "Hunter Dansin",
+  "license": "ISC",
+  "dependencies": {
+    "chess.js": "^0.11.0",
+    "express": "^4.17.1",
+    "socket.io": "^3.1.1"
+  }
+}
