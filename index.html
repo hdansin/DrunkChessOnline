@@ -4,7 +4,7 @@
     <title>Drunk Chess</title>
     <style>
       body {
-        background-color: darkslateblue;
+        background-color: #2E3440;
         color: #fff;
       }
     </style>
@@ -12,10 +12,24 @@
   <body>
     <h1>Drunk Chess</h1>
     <h2>Chess but the pieces are too drunk to remember what they are.</h2>
-    <div>placeholder</div>
+    <div id="form-container">
+      <form id="username-form" action=""><input placeholder="type desired username" id="username-input" autocomplete="off"/><button>Create Game</button></form>
+      <form id="join-form" action=""><input placeholder="type join code here" id="join-input" autocomplete="off"/><button>Join Game</button></form>
+    </div>
     <script src="/socket.io/socket.io.js"></script>
     <script>
       var socket = io();
+
+      var form = document.getElementById('username-form');
+      var input = document.getElementById('username-input');
+
+      form.addEventListener('submit', function(e) {
+        e.preventDefault();
+        if (input.value) {
+          socket.emit('username submitted', input.value);
+          input.value = '';
+        }
+      });
     </script>
   </body>
 </html>

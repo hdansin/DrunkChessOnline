@@ -9,6 +9,13 @@ app.get('/', (req, res) => {
 
 io.on('connection', (socket) => {
   console.log('a user connected');
+  socket.on('disconnect', () => {
+    console.log('user disconnected');
+  });
+
+  socket.on('username submitted', (uname) => {
+    console.log('user ' + uname + ' wants to create a game');  
+  });
 });
 
 http.listen(3000, () => {
