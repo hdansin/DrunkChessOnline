@@ -42,22 +42,24 @@
     <h2>Chess but the pieces are too drunk to remember what they are.</h2>
     <div id="join-code"></div>
     <div id="board-container">
-      <form id="username-form" action=""><input placeholder="type desired username" id="username-input" autocomplete="off"/><button>Create Game</button></form>
-      <form id="join-form" action=""><input placeholder="type join code here" id="join-input" autocomplete="off"/><button>Join Game</button></form>
+      <form id="create-game-button" action=""><button>Create Game</button></form>
+      <form id="join-form" action=""><input placeholder="Enter the number of the room you would like to join" id="join-input" autocomplete="off"/><button>Join Game</button></form>
     </div>
     <script src="/socket.io/socket.io.js"></script>
     <script src="/assets/chessjs/chess.js"></script>
     <script>
-      var socket = io();
+      var socket = io("http://localhost:3000");
       var chess = new Chess();
 
-      var form = document.getElementById('username-form');
-      var input = document.getElementById('username-input');
+      var createGameButton = document.getElementById('create-game-button');
       var joinForm = document.getElementById('join-form');
       var joinInput = document.getElementById('join-input');
       var boardContainer = document.getElementById('board-container');
+      var joinHeader = document.getElementById('join-code');
       var joinCode = '';
       var playerPieceColor = '';
+      var playerID = socket.id;
+      var otherPlayerID = '';
 
       function drawBoard(board, playerColor) {
         // Draw the board
@@ -121,72 +123,74 @@
         let numB = 1;
         let numb = 1;
         let id = '';
+        let wDraggable = playerPieceColor == 'white' ? "true" : "false";
+        let bDraggable = playerPieceColor == 'black' ? "true" : "false";
         for (let i = 0; i < squareNodes.length; i++) {
           let sq = squareNodes[i].getAttribute('id');
           // place white pawns
           if (sq[1] == '2') {
             id = 'P' + numP
-            squareNodes[i].insertAdjacentHTML('afterbegin', '<img id="' + id +  '" class="piece" src="./assets/pieces/wp.svg"/>');
+            squareNodes[i].insertAdjacentHTML('afterbegin', '<img id="' + id +  '" + draggable="' + wDraggable + '" class="piece" src="./assets/pieces/wp.svg"/>');
             numP++;
           }
           // place black pawns
           if (sq[1] == '7') {
             id = 'p' + nump
-            squareNodes[i].insertAdjacentHTML('afterbegin', '<img id="' + id +  '" class="piece" src="./assets/pieces/bp.svg"/>');
+            squareNodes[i].insertAdjacentHTML('afterbegin', '<img id="' + id +  '" draggable="' + bDraggable + '"  class="piece" src="./assets/pieces/bp.svg"/>');
             nump++;
 
           }
           // place white rooks
           else if (sq == 'a1' || sq == 'h1') {
             id = 'R' + numR
-            squareNodes[i].insertAdjacentHTML('afterbegin', '<img id="' + id +  '" class="piece" src="./assets/pieces/wr.svg"/>');
             numR++;
+            squareNodes[i].insertAdjacentHTML('afterbegin', '<img id="' + id +  '" draggable="' + wDraggable + '"  class="piece" src="./assets/pieces/wr.svg"/>');
           }
           // place black rooks
           else if (sq == 'a8' || sq == 'h8') {
             id = 'r' + numr
-            squareNodes[i].insertAdjacentHTML('afterbegin', '<img id="' + id +  '" class="piece" src="./assets/pieces/br.svg"/>');
             numr++;
+            squareNodes[i].insertAdjacentHTML('afterbegin', '<img id="' + id +  '" draggable="' + bDraggable + '"  class="piece" src="./assets/pieces/br.svg"/>');
           }
           // place white knights
           else if (sq == 'b1' || sq == 'g1') {
             id = 'N' + numN;
-            squareNodes[i].insertAdjacentHTML('afterbegin', '<img id="' + id +  '" class="piece" src="./assets/pieces/wn.svg"/>');
             numN++;
+            squareNodes[i].insertAdjacentHTML('afterbegin', '<img id="' + id +  '" draggable="' + wDraggable + '"  class="piece" src="./assets/pieces/wn.svg"/>');
           }
           // place black knights
           else if (sq == 'b8' || sq == 'g8') {
             id = 'n' + numn
-            squareNodes[i].insertAdjacentHTML('afterbegin', '<img id="' + id +  '" class="piece" src="./assets/pieces/bn.svg"/>');
             numn++;
+            squareNodes[i].insertAdjacentHTML('afterbegin', '<img id="' + id +  '" draggable="' + bDraggable + '"  class="piece" src="./assets/pieces/bn.svg"/>');
           }
           // place white bishops
           else if (sq == 'c1' || sq == 'f1') {
             id = 'B' + numB
-            squareNodes[i].insertAdjacentHTML('afterbegin', '<img id="' + id +  '" class="piece" src="./assets/pieces/wb.svg"/>');
             numB++;
+            squareNodes[i].insertAdjacentHTML('afterbegin', '<img id="' + id +  '" draggable="' + wDraggable + '"  class="piece" src="./assets/pieces/wb.svg"/>');
           }
           // place black bishops
           else if (sq == 'c8' || sq == 'f8') {
-            id = 'z' + numb // This avoids creating the same id as square "a1"
-            squareNodes[i].insertAdjacentHTML('afterbegin', '<img id="' + id +  '" class="piece" src="./assets/pieces/bb.svg"/>');
+            id = 'z' + numb; // this is to avoid duplicate ids with square "b1"
             numb++;
+            squareNodes[i].insertAdjacentHTML('afterbegin', '<img id="' + id +  '" draggable="' + bDraggable + '"  class="piece" src="./assets/pieces/bb.svg"/>');
           }
           // place white queen
           else if (sq == 'd1') {
-            squareNodes[i].insertAdjacentHTML('afterbegin', '<img id="Q0" class="piece" src="./assets/pieces/wq.svg"/>');
+            squareNodes[i].insertAdjacentHTML('afterbegin', '<img id="Q0"' + 'draggable="' + wDraggable + '"class="piece" src="./assets/pieces/wq.svg"/>');
           }
           // place black queen
           else if (sq == 'd8') {
-            squareNodes[i].insertAdjacentHTML('afterbegin', '<img id="q0" class="piece" src="./assets/pieces/bq.svg"/>');
+            squareNodes[i].insertAdjacentHTML('afterbegin', '<img id="q0"' + 'draggable="' + bDraggable + '"class="piece" src="./assets/pieces/bq.svg"/>');
           }
           // place white king
            else if (sq == 'e1') {
-            squareNodes[i].insertAdjacentHTML('afterbegin', '<img id="K0" class="piece" src="./assets/pieces/wk.svg"/>');
+            squareNodes[i].insertAdjacentHTML('afterbegin', '<img id="K0"' + 'draggable="' + wDraggable + '"class="piece" src="./assets/pieces/wk.svg"/>');
           }
           // place black king
            else if (sq == 'e8') {
-            squareNodes[i].insertAdjacentHTML('afterbegin', '<img id="k0" class="piece" src="./assets/pieces/bk.svg"/>');
+            squareNodes[i].insertAdjacentHTML('afterbegin', '<img id="k0"' + 'draggable="' + bDraggable + '"class="piece" src="./assets/pieces/bk.svg"/>');
           }
         }
       }
@@ -212,6 +216,7 @@
         event.dataTransfer.dropEffect = "move";
         // Get Id of square and add moved element to it
         data = event.dataTransfer.getData('text/plain');
+        console.log(data);
         let squareFrom = data.slice(2);
         // Make sure the drop square is not a piece
         let dropSquare = event.target.className == "piece" ? event.target.parentNode : event.target;
@@ -219,9 +224,13 @@
         let move = {from: '', to: '', promotion: 'q'};
         move.from = squareFrom;
         move.to = dropSquare.id;
-        let moveObj = chess.move(move);
         // Check if legal move
+        // only allow if the move matches the player's piece color
+        let moveObj = chess.move(move);
         if (moveObj) {
+          // Emit the move
+          socket.emit('move', moveObj, roomID);
+          // Do the move
           if (moveObj.flags == 'n' || moveObj.flags == 'b') {
             dropSquare.appendChild(piece);
           }
@@ -322,48 +331,239 @@
               }
             } 
           }
+          // Perform the switch using chess.get and chess.put, then get the new FEN and load and emit it.
+          // Then do the switch visually
+          const boardContainer = document.getElementById('board-container');
+          const squareNodes = boardContainer.childNodes;
+          const pieceColor = moveObj.color;
+          let coordArray = [];
+
+          // First build an array of eligible coordinates to choose from. These will be any piece of the player's color that is not the king or the piece that just moved
+          for (let i = 0; i < squareNodes.length; i++) {
+            let sq = squareNodes[i].getAttribute('id');
+            let p = chess.get(sq);
+            if (p) {
+              if (p.type !== 'k' && p.color == pieceColor && sq !== moveObj.to) {
+                coordArray.push(sq); 
+              }
+            }
+          }
+
+          // Then choose two random coordinates from the array by splicing one from the array, then splicing a second one.
+          // Don't switch if it is only the king and one piece left
+          if (coordArray.length > 1) {
+            let l = coordArray.length;
+            let n = Math.floor(Math.random() * Math.floor(l));
+            let randomCoord1 = coordArray[n];
+            coordArray.splice(n, 1);       
+
+            l = coordArray.length;
+            n = Math.floor(Math.random() * Math.floor(l));
+            let randomCoord2 = coordArray[n];
+            coordArray.splice(n, 1);
+            console.log(randomCoord1, randomCoord2);
+
+            // Then use remove and put to change the board
+            let randomPiece1 = chess.remove(randomCoord1);
+            let randomPiece2 = chess.remove(randomCoord2);
+            chess.put(randomPiece1, randomCoord2);
+            chess.put(randomPiece2, randomCoord1);
+            console.log(chess.ascii());
+            let fen = chess.fen();
+
+            // Emit the coordinates and the new chess fen
+            socket.emit('switch', randomCoord1, randomCoord2, fen, roomID);
+
+            // Then use the coordinates to switch the pieces on the screen
+            let randomSquareNode1 = document.getElementById(randomCoord1);
+            let randomSquareNode2 = document.getElementById(randomCoord2);
+            let randomPieceNode1 = randomSquareNode1.firstChild;
+            let randomPieceNode2 = randomSquareNode2.firstChild;
+            randomSquareNode1.replaceChildren();
+            randomSquareNode1.appendChild(randomPieceNode2);
+            randomSquareNode2.replaceChildren();
+            randomSquareNode2.appendChild(randomPieceNode1);
           }
         }
+      }
 
 
-
-
-
-
-      form.addEventListener('submit', function(e) {
+      createGameButton.addEventListener('submit', function(e) {
+        // Create a game room and add the player to it
         e.preventDefault();
-        if (input.value) {
-          socket.emit('username submitted', input.value);
-          input.value = '';
-          playerPieceColor = 'white';
-          // Create a room with a board and a join code
-          console.log('Drawing board for white');
-          // Remove forms from the container, draw the board and place the pieces
-          boardContainer.replaceChildren();
-          drawBoard(boardContainer, playerPieceColor);
-          placePieces();
-          // Add the join code at the top of the page
-          joinCode = socket.id;
-          joinHeader = document.getElementById('join-code');
-          joinHeader.insertAdjacentHTML('afterbegin', '<h4>Join Code: ' + joinCode + '<h4>');
-        }
+        playerID = socket.id;
+        socket.emit('game-created');
+        playerPieceColor = 'white';
+        // Create a room with a board and a join code
+        console.log('Drawing board for white');
+        // Remove forms from the container, draw the board and place the pieces
+        boardContainer.replaceChildren();
       });
 
       joinForm.addEventListener('submit', function(e) {
         e.preventDefault();
         if (joinInput.value) {
-          socket.emit('join code submitted', input.value);
-          joinCode = joinInput.value;
+          roomID = joinInput.value;
+          playerID = socket.id;
+          socket.emit('roomID-submitted', roomID, playerID);
           joinInput.value = '';
           playerPieceColor = 'black';
-          // Remove forms from container, draw the board and place the pieces
-          console.log('Drawing board for black');
-          boardContainer.replaceChildren();
-          drawBoard(boardContainer, playerPieceColor);
-          placePieces();
         }
-                
       });
+
+      socket.on('creating-room', function(room) {
+        console.log("adding header");
+        roomID = room;
+        joinHeader.insertAdjacentHTML('afterbegin', 'Room ' + roomID + ': Send your friend the room number to start playing.' + '<h4>');
+      });
+
+      socket.on('player2-joining', function () {
+        console.log("player 2 joined, make the first move");
+        joinHeader.replaceChildren();
+        joinHeader.insertAdjacentHTML('afterbegin', 'Room ' + roomID + ': Player 2 joined. White may make the first move.' + '<h4>');
+        // Draw board and place pieces
+        boardContainer.replaceChildren();
+        drawBoard(boardContainer, playerPieceColor);
+        placePieces();
+      });
+
+      socket.on('room-full', function () {
+        window.alert("Sorry, that room is full.")
+      });
+
+
+      socket.on('opponent-move', function (move) {
+        console.log("opponent moved: " + move);
+        // Make the move
+        // Do the move visually
+        let moveObj = chess.move(move);
+        let squareFrom = move.from;
+        let dropSquare = document.getElementById(move.to);
+        let piece = document.getElementById(squareFrom).firstChild;
+        console.log(chess.ascii());
+        // Do the move
+        if (moveObj.flags == 'n' || moveObj.flags == 'b') {
+          dropSquare.appendChild(piece);
+        }
+        // clear nodes and insert new piece
+        else if (moveObj.flags == 'c') {
+          let oldChild = dropSquare.firstChild;
+          dropSquare.replaceChild(piece, oldChild);
+        } else {
+          // handle castling
+          if (moveObj.flags == 'k') {
+            // kimgside castle
+            if (moveObj.color == 'w') {
+              // Move King
+              dropSquare.appendChild(piece);
+              // Move rook
+              let R2 = document.getElementById("R2");
+              let f1 = document.getElementById("f1");
+              let h1 = document.getElementById("h1");
+              h1.replaceChildren();
+              f1.appendChild(R2);
+            } else {
+              // Move King
+              dropSquare.appendChild(piece);
+              // Move rook
+              let r2 = document.getElementById("r2");
+              let f8 = document.getElementById("f8");
+              let h8 = document.getElementById("h8");
+              h8.replaceChildren();
+              f8.appendChild(r2);
+            }
+          } else if (moveObj.flags == 'q') {
+            // queenside castle
+            if (moveObj.color == 'w') {
+              // Move King
+              dropSquare.appendChild(piece);
+              // Move rook
+              let R1 = document.getElementById("R1");
+              let d1 = document.getElementById("d1");
+              let a1 = document.getElementById("a1");
+              a1.replaceChildren();
+              d1.appendChild(R1);
+            } else {
+              // Move King
+              dropSquare.appendChild(piece);
+              // Move rook
+              let r1 = document.getElementById("r1");
+              let d8 = document.getElementById("d8");
+              let a8 = document.getElementById("a8");
+              a8.replaceChildren();
+              d8.appendChild(r1);
+
+            }
+            // handle en passant
+          } else if (moveObj.flags == 'e') {
+            dropSquare.appendChild(piece);
+            if (moveObj.color == 'w') {
+              //white
+              let sq = document.getElementById(dropSquare.id[0] + (Number(dropSquare.id[1]) - 1));
+              sq.replaceChildren();
+            } else {
+              // black
+              let sq = document.getElementById(dropSquare.id[0] + (Number(dropSquare.id[1]) + 1));
+              sq.replaceChildren();
+            }
+            // handle promotion
+          } else if (moveObj.flags[1] == 'p') {
+            console.log("promotion");
+            let queen = '';
+            let fromNode = document.getElementById(squareFrom);
+            let numQueens = 1;
+            let boardFen = chess.fen();
+            // white 
+            if (moveObj.color == 'w') {
+              for (let i = 0; i < boardFen.length; i++) {
+                if (boardFen[i] === ' ') {
+                  i = boardFen.length;
+                } else if (boardFen[i] == 'Q') {
+                  numQueens++;
+                }
+              }
+              queen = '<img id="Q' + numQueens + '" class="piece" src="./assets/pieces/wq.svg"/>';
+              fromNode.replaceChildren();
+              dropSquare.replaceChildren();
+              dropSquare.insertAdjacentHTML('afterbegin', queen);
+            } else {
+              // black
+              for (let i = 0; i < boardFen.length; i++) {
+                if (boardFen[i] === ' ') {
+                  i = boardFen.length;
+                } else if (boardFen[i] == 'q') {
+                  numQueens++;
+                }
+              }
+              queen = '<img id="q' + numQueens + '" class="piece" src="./assets/pieces/bq.svg"/>';
+              fromNode.replaceChildren();
+              dropSquare.replaceChildren();
+              dropSquare.insertAdjacentHTML('afterbegin', queen);
+            }
+          } 
+        }
+      });
+
+      socket.on('switch-pieces', function(c1, c2, fen) {
+        // Load the new board
+        chess.load(fen);
+        console.log("switched board: " + chess.ascii());
+
+        // Then use the coordinates to switch the pieces on the screen
+        let randomSquareNode1 = document.getElementById(c1);
+        let randomSquareNode2 = document.getElementById(c2);
+        let randomPieceNode1 = randomSquareNode1.firstChild;
+        let randomPieceNode2 = randomSquareNode2.firstChild;
+        randomSquareNode1.replaceChildren();
+        randomSquareNode1.appendChild(randomPieceNode2);
+        randomSquareNode2.replaceChildren();
+        randomSquareNode2.appendChild(randomPieceNode1);
+      });
+
+      socket.onAny((event, ...args) => {
+        console.log(event, args);
+      });
+
     </script>
   </body>
 </html>
