@@ -16,6 +16,14 @@
         grid-template-columns: repeat(8, 1fr);
       }
 
+      #create-game-button {
+        padding: 10px;
+      }
+
+      #join-form {
+        padding: 10px;
+      }
+
       .lightSquare {
         width: 1fr;
         height: 1fr;
@@ -43,7 +51,7 @@
     <div id="join-code"></div>
     <div id="board-container">
       <form id="create-game-button" action=""><button>Create Game</button></form>
-      <form id="join-form" action=""><input placeholder="Enter the number of the room you would like to join" id="join-input" autocomplete="off"/><button>Join Game</button></form>
+      <form id="join-form" action=""><input placeholder="Enter the room number" id="join-input" autocomplete="off"/><button>Join Game</button></form>
     </div>
     <script src="/socket.io/socket.io.js"></script>
     <script src="/assets/chessjs/chess.js"></script>
