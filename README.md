@@ -13,7 +13,7 @@ Drunk chess is a project that I am making for fun. It plays like normal chess wi
 
 - [x] Prototype the core gameplay
 - [x] Implement Socket.io
-- [ ] Add visual/audio cues that indicate opponent moves and switched pieces
+- [x] Add visual/audio cues that indicate opponent moves and switched pieces
 - [ ] Add game won or lost messages
 - [ ] Add rematch/new game button
 - [ ] Make it a little pretty

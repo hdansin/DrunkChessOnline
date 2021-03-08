@@ -4,8 +4,8 @@
     <title>Drunk Chess</title>
     <style>
       body {
-        background-color: #252B33;
-        color: #fff;
+        background-color: #1d2023;
+        color: #f4f4f4;
       }
 
       #board-container {
@@ -28,14 +28,14 @@
         width: 1fr;
         height: 1fr;
         color: #000;
-        background-color: #F7F7F7;
+        background-color: #f4f4f4;
       }
 
       .darkSquare {
         width: 1fr;
         height: 1fr;
         color: #000;
-        background-color: #98BCF0;
+        background-color: #6f9bd4;
       }
 
       .piece {
@@ -53,11 +53,23 @@
       <form id="create-game-button" action=""><button>Create Game</button></form>
       <form id="join-form" action=""><input placeholder="Enter the room number" id="join-input" autocomplete="off"/><button>Join Game</button></form>
     </div>
+    <audio id="game-over" src="./assets/sounds/bubble-game-over.mp3"></audio>
+    <audio id="check" src="./assets/sounds/bubble-check.mp3"></audio>
+    <audio id="new-game" src="./assets/sounds/bubble-new-game.mp3"></audio>
+    <audio id="normal-move" src="./assets/sounds/bubble-normal-move.mp3"></audio>
+
+
     <script src="/socket.io/socket.io.js"></script>
     <script src="/assets/chessjs/chess.js"></script>
     <script>
       var socket = io("http://localhost:3000");
       var chess = new Chess();
+
+      // Audio
+      const gameOver = document.getElementById('game-over');
+      const check = document.getElementById('check');
+      const newGame = document.getElementById('new-game');
+      const normalMove = document.getElementById('normal-move');
 
       var createGameButton = document.getElementById('create-game-button');
       var joinForm = document.getElementById('join-form');
@@ -89,7 +101,6 @@
 
 
         const boardContainer = board;
-              console.log(boardContainer);
         let color = 0; // white = 0, black = 1
         let html = '';
         for (let i = 0; i < boardWidth; i++) {
@@ -118,6 +129,8 @@
       }
 
       function placePieces() {
+        // Play a sound
+        newGame.play();
         // Get a list of the child nodes
         const parentContainer = document.getElementById('board-container');
         let squareNodes = parentContainer.childNodes;
@@ -238,7 +251,13 @@
         if (moveObj) {
           // Emit the move
           socket.emit('move', moveObj, roomID);
-          // Do the move
+          // Play a sound
+          if (chess.game_over()) {
+            gameOver.play();
+          } else {
+            normalMove.play();
+          }
+ 
           if (moveObj.flags == 'n' || moveObj.flags == 'b') {
             dropSquare.appendChild(piece);
           }
@@ -391,6 +410,25 @@
             randomSquareNode1.appendChild(randomPieceNode2);
             randomSquareNode2.replaceChildren();
             randomSquareNode2.appendChild(randomPieceNode1);
+
+            // Add visual and audio cues that show the move and switched pieces
+            randomSquareNode1.animate([
+              {// from
+                backgroundColor: '#ffea93'
+              },
+              {// to
+                backgroundColor: randomSquareNode1.className == 'lightSquare' ? '#f4f4f4' : '#659bd4'
+              }
+            ], 2000);
+
+            randomSquareNode2.animate([
+              {// from
+                backgroundColor: '#ffea93'
+              },
+              {// to
+                backgroundColor: randomSquareNode2.className == 'lightSquare' ? '#f4f4f4' : '#659bd4'
+              }
+            ], 2000);
           }
         }
       }
@@ -442,6 +480,7 @@
 
       socket.on('opponent-move', function (move) {
         console.log("opponent moved: " + move);
+        // Play a sound
         // Make the move
         // Do the move visually
         let moveObj = chess.move(move);
@@ -449,6 +488,12 @@
         let dropSquare = document.getElementById(move.to);
         let piece = document.getElementById(squareFrom).firstChild;
         console.log(chess.ascii());
+        // Check for game over
+        if (chess.game_over()) {
+          gameOver.play();
+        } else {
+          normalMove.play();
+        }
         // Do the move
         if (moveObj.flags == 'n' || moveObj.flags == 'b') {
           dropSquare.appendChild(piece);
@@ -550,6 +595,17 @@
             }
           } 
         }
+          
+        // Highlight the opponent's move
+        dropSquare.animate([
+              {// from
+                backgroundColor: '#ff6961'
+              },
+              {// to
+                backgroundColor: dropSquare.className == 'lightSquare' ? '#f4f4f4' : '#659bd4'
+              }
+        ], 2000);
+
       });
 
       socket.on('switch-pieces', function(c1, c2, fen) {
@@ -566,6 +622,25 @@
         randomSquareNode1.appendChild(randomPieceNode2);
         randomSquareNode2.replaceChildren();
         randomSquareNode2.appendChild(randomPieceNode1);
+
+        // Add visual and audio cues that show the move and switched pieces
+        randomSquareNode1.animate([
+          {// from
+            backgroundColor: '#ffea93'
+          },
+          {// to
+            backgroundColor: randomSquareNode1.className == 'lightSquare' ? '#f4f4f4' : '#659bd4'
+          }
+        ], 2000);
+
+        randomSquareNode2.animate([
+          {// from
+            backgroundColor: '#ffea93'
+          },
+          {// to
+            backgroundColor: randomSquareNode2.className == 'lightSquare' ? '#f4f4f4' : '#659bd4'
+          }
+        ], 2000);
       });
 
       socket.onAny((event, ...args) => {
