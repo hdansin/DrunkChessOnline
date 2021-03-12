@@ -12,6 +12,12 @@
         color: #6f9bd4;
       }
 
+      code {
+        background-color: #587ca9;
+        font-size: 22px;
+        border-radius: 3px;
+      }
+
       button {
         background-color: #587ca9;
         color: #f4f4f4;
@@ -88,7 +94,7 @@
     <div id="join-code"></div>
     <div id="board-container">
       <form id="create-game-button" action=""><button>Create Game</button></form>
-      <form id="join-form" action=""><input placeholder="Enter the room number" id="join-input" autocomplete="off"/><button>Join Game</button></form>
+      <form id="join-form" action=""><input placeholder="Enter the join code here." id="join-input" autocomplete="off"/><button>Join Game</button></form>
     </div>
     <form id="start-over-button"><button>Start Over</button></form>
     <div id="about-section">Made with <a href="https://github.com/jhlywa/chess.js/">chess.js</a> and <a href="https://socket.io">Socket.IO</a>. Sound from <a href="https://www.zapsplat.com">Zapsplat</a>.</div>
@@ -524,13 +530,13 @@
       socket.on('creating-room', function(room) {
         console.log("adding header");
         roomID = room;
-        joinHeader.insertAdjacentHTML('afterbegin', 'Room ' + roomID + ': Send your friend the room number to start playing.' + '<h4>');
+        joinHeader.insertAdjacentHTML('afterbegin', '<h4>Join code: <code>' + roomID + '</code>' + '. Send your friend the join code to start playing.</h4>');
       });
 
       socket.on('player2-joining', function () {
         console.log("player 2 joined, make the first move");
         joinHeader.replaceChildren();
-        joinHeader.insertAdjacentHTML('afterbegin', 'Room ' + roomID + ': Player 2 joined. White may make the first move.' + '<h4>');
+        joinHeader.insertAdjacentHTML('afterbegin', '<h4>Player 2 joined. White may make the first move.</h4>');
         // Draw board and place pieces
         boardContainer.replaceChildren();
         drawBoard(boardContainer, playerPieceColor);

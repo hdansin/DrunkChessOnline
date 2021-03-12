@@ -8,12 +8,19 @@ var openRooms = []; // An array of open rooms
 
 var roomIsOpen = function (room, roomArr) {
   for (let i = 0; i < roomArr.length; i++) {
-    if (roomArr == room) {
+    if (roomArr[i] == room) {
       return true;
     }
   }
   return false;
 }
+
+var ID = function () { // Credit for this function to gordonbrander on Github
+  // Math.random should be unique because of its seeding algorithm.
+  // Convert it to base 36 (numbers + letters), and grab the first 9 characters
+  // after the decimal.
+  return '_' + Math.random().toString(36).substr(2, 9);
+};
 
 app.use('/assets', express.static(__dirname + '/assets'));
 
@@ -28,8 +35,8 @@ io.on('connection', (socket) => {
   });
 
   socket.on('game-created', () => {
-    numRooms++;
-    let room = "" + numRooms;
+    // Create a unique room ID, join the socket, and send it back
+    let room = ID();
     openRooms.push(room);
     socket.join(room);
     console.log(socket.rooms);
