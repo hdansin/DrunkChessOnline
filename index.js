@@ -59,6 +59,11 @@ io.on('connection', (socket) => {
     socket.to(roomID).emit('opponent-move', moveObj, roomID);
   });
 
+  socket.on('start-over', (roomID) => {
+    socket.to(roomID).emit('start-over');
+  });
+
+
   socket.on('switch', (c1, c2, fen, roomID) => {
     console.log("switching pieces " + c1 + " with " + c2);
     socket.to(roomID).emit('switch-pieces', c1, c2, fen);

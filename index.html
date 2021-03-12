@@ -8,6 +8,33 @@
         color: #f4f4f4;
       }
 
+      a {
+        color: #6f9bd4;
+      }
+
+      button {
+        background-color: #587ca9;
+        color: #f4f4f4;
+        border: 0;
+        padding: 4px 9px;
+        margin: 5px;
+        font-size: 16px;
+        box-shadow: 0px 2px 0px 0px;
+        border-radius: 5px;
+      }
+
+      button:hover {
+        background-color: #638bbe;
+        cursor: pointer;
+      }
+
+      input {
+        padding: 5px;
+        margin: 5px;
+        border: none;
+        border-radius: 5px;
+      }
+
       #board-container {
         margin: 0 auto;
         width: 640px;
@@ -23,6 +50,16 @@
       #join-form {
         padding: 10px;
       }
+
+      #about-section {
+        padding: 10px;
+      }
+
+      #start-over-button {
+        padding: 10px;
+        visibility: hidden;
+      }
+
 
       .lightSquare {
         width: 1fr;
@@ -53,6 +90,8 @@
       <form id="create-game-button" action=""><button>Create Game</button></form>
       <form id="join-form" action=""><input placeholder="Enter the room number" id="join-input" autocomplete="off"/><button>Join Game</button></form>
     </div>
+    <form id="start-over-button"><button>Start Over</button></form>
+    <div id="about-section">Made with <a href="https://github.com/jhlywa/chess.js/">chess.js</a> and <a href="https://socket.io">Socket.IO</a>. Sound from <a href="https://www.zapsplat.com">Zapsplat</a>.</div>
     <audio id="game-over" src="./assets/sounds/bubble-game-over.mp3"></audio>
     <audio id="check" src="./assets/sounds/bubble-check.mp3"></audio>
     <audio id="new-game" src="./assets/sounds/bubble-new-game.mp3"></audio>
@@ -71,12 +110,14 @@
       const newGame = document.getElementById('new-game');
       const normalMove = document.getElementById('normal-move');
 
+      // Buttons and initial vars
       var createGameButton = document.getElementById('create-game-button');
       var joinForm = document.getElementById('join-form');
       var joinInput = document.getElementById('join-input');
       var boardContainer = document.getElementById('board-container');
       var joinHeader = document.getElementById('join-code');
       var joinCode = '';
+      var startOverButton = document.getElementById('start-over-button');
       var playerPieceColor = '';
       var playerID = socket.id;
       var otherPlayerID = '';
@@ -251,13 +292,24 @@
         if (moveObj) {
           // Emit the move
           socket.emit('move', moveObj, roomID);
-          // Play a sound
+          // Check for game over
           if (chess.game_over()) {
             gameOver.play();
+            joinHeader.replaceChildren();
+            joinHeader.insertAdjacentHTML('afterbegin', "<h4>You won!</h4>");
           } else {
-            normalMove.play();
+            if (chess.in_check()) {
+              check.play();
+              joinHeader.replaceChildren();
+              joinHeader.insertAdjacentHTML('afterbegin', "<h4>Check!</h4>");
+            } else {
+              normalMove.play();
+              joinHeader.replaceChildren();
+              let lastMove = chess.history().pop();
+              joinHeader.insertAdjacentHTML('afterbegin', "<h4>" + lastMove + "</h4>");
+            }
           }
- 
+
           if (moveObj.flags == 'n' || moveObj.flags == 'b') {
             dropSquare.appendChild(piece);
           }
@@ -268,25 +320,25 @@
           } else {
             // handle castling
             if (moveObj.flags == 'k') {
-              // kimgside castle
+              // kingside castle
               if (moveObj.color == 'w') {
                 // Move King
                 dropSquare.appendChild(piece);
                 // Move rook
-                let R2 = document.getElementById("R2");
+                let kCastlePiece = document.getElementById("h1").firstChild;
                 let f1 = document.getElementById("f1");
                 let h1 = document.getElementById("h1");
                 h1.replaceChildren();
-                f1.appendChild(R2);
+                f1.appendChild(kCastlePiece);
               } else {
                 // Move King
                 dropSquare.appendChild(piece);
                 // Move rook
-                let r2 = document.getElementById("r2");
+                let kCastlePiece = document.getElementById("h8").firstChild;
                 let f8 = document.getElementById("f8");
                 let h8 = document.getElementById("h8");
                 h8.replaceChildren();
-                f8.appendChild(r2);
+                f8.appendChild(kCastlePiece);
               }
             } else if (moveObj.flags == 'q') {
               // queenside castle
@@ -294,21 +346,20 @@
                 // Move King
                 dropSquare.appendChild(piece);
                 // Move rook
-                let R1 = document.getElementById("R1");
+                let qCastlePiece = document.getElementById("a1").firstChild;
                 let d1 = document.getElementById("d1");
                 let a1 = document.getElementById("a1");
                 a1.replaceChildren();
-                d1.appendChild(R1);
+                d1.appendChild(qCastlePiece);
               } else {
                 // Move King
                 dropSquare.appendChild(piece);
                 // Move rook
-                let r1 = document.getElementById("r1");
+                let qCastlePiece = document.getElementById("a8").firstChild;
                 let d8 = document.getElementById("d8");
                 let a8 = document.getElementById("a8");
                 a8.replaceChildren();
-                d8.appendChild(r1);
-
+                d8.appendChild(qCastlePiece);
               }
               // handle en passant
             } else if (moveObj.flags == 'e') {
@@ -419,7 +470,7 @@
               {// to
                 backgroundColor: randomSquareNode1.className == 'lightSquare' ? '#f4f4f4' : '#659bd4'
               }
-            ], 2000);
+             ], 2000);
 
             randomSquareNode2.animate([
               {// from
@@ -440,6 +491,7 @@
         playerID = socket.id;
         socket.emit('game-created');
         playerPieceColor = 'white';
+
         // Create a room with a board and a join code
         console.log('Drawing board for white');
         // Remove forms from the container, draw the board and place the pieces
@@ -457,6 +509,18 @@
         }
       });
 
+      startOverButton.addEventListener('submit', function(e) {
+        // Reset the game and reset the pieces
+        e.preventDefault();
+        chess.reset();
+        boardContainer.replaceChildren();
+        drawBoard(boardContainer, playerPieceColor);
+        placePieces();
+        joinHeader.replaceChildren();
+        joinHeader.insertAdjacentHTML('afterbegin', "<h4>New game. White to move.</h4>");
+        socket.emit('start-over', roomID);
+      });
+
       socket.on('creating-room', function(room) {
         console.log("adding header");
         roomID = room;
@@ -471,10 +535,20 @@
         boardContainer.replaceChildren();
         drawBoard(boardContainer, playerPieceColor);
         placePieces();
+        startOverButton.style.visibility = 'visible';
       });
 
       socket.on('room-full', function () {
         window.alert("Sorry, that room is full.")
+      });
+      
+      socket.on('start-over', function () {
+        chess.reset();
+        boardContainer.replaceChildren();
+        drawBoard(boardContainer, playerPieceColor);
+        placePieces();
+        joinHeader.replaceChildren();
+        joinHeader.insertAdjacentHTML('afterbegin', "<h4>New game. White to move.</h4>");
       });
 
 
@@ -491,8 +565,19 @@
         // Check for game over
         if (chess.game_over()) {
           gameOver.play();
+          joinHeader.replaceChildren();
+          joinHeader.insertAdjacentHTML('afterbegin', "<h4>You lost. \"There is no remorse like the remorse of chess.\" H.G. Wells </h4>");
         } else {
-          normalMove.play();
+          if (chess.in_check()) {
+            check.play();
+            joinHeader.replaceChildren();
+                  joinHeader.insertAdjacentHTML('afterbegin', "<h4>You're in check!</h4>");
+          } else {
+            normalMove.play();
+            joinHeader.replaceChildren();
+            let lastMove = chess.history().pop();
+            joinHeader.insertAdjacentHTML('afterbegin', "<h4>" + lastMove + "</h4>");
+          }
         }
         // Do the move
         if (moveObj.flags == 'n' || moveObj.flags == 'b') {
@@ -510,20 +595,20 @@
               // Move King
               dropSquare.appendChild(piece);
               // Move rook
-              let R2 = document.getElementById("R2");
+              let kCastlePiece = document.getElementById("h1").firstChild;
               let f1 = document.getElementById("f1");
               let h1 = document.getElementById("h1");
               h1.replaceChildren();
-              f1.appendChild(R2);
+              f1.appendChild(kCastlePiece);
             } else {
               // Move King
               dropSquare.appendChild(piece);
               // Move rook
-              let r2 = document.getElementById("r2");
+              let kCastlePiece = document.getElementById("h8").firstChild;
               let f8 = document.getElementById("f8");
               let h8 = document.getElementById("h8");
               h8.replaceChildren();
-              f8.appendChild(r2);
+              f8.appendChild(kCastlePiece);
             }
           } else if (moveObj.flags == 'q') {
             // queenside castle
@@ -531,21 +616,20 @@
               // Move King
               dropSquare.appendChild(piece);
               // Move rook
-              let R1 = document.getElementById("R1");
+              let qCastlePiece = document.getElementById("a1").firstChild;
               let d1 = document.getElementById("d1");
               let a1 = document.getElementById("a1");
               a1.replaceChildren();
-              d1.appendChild(R1);
+              d1.appendChild(qCastlePiece);
             } else {
               // Move King
               dropSquare.appendChild(piece);
               // Move rook
-              let r1 = document.getElementById("r1");
+              let qCastlePiece = document.getElementById("a8").firstChild;
               let d8 = document.getElementById("d8");
               let a8 = document.getElementById("a8");
               a8.replaceChildren();
-              d8.appendChild(r1);
-
+              d8.appendChild(qCastlePiece);
             }
             // handle en passant
           } else if (moveObj.flags == 'e') {
