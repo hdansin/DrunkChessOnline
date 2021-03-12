@@ -3,7 +3,6 @@ const app = express();
 const http = require('http').Server(app);
 const io = require('socket.io')(http);
 
-var numRooms = 0;
 var openRooms = []; // An array of open rooms
 
 var roomIsOpen = function (room, roomArr) {
@@ -78,6 +77,6 @@ io.on('connection', (socket) => {
 
 });
 
-http.listen(3000, () => {
+http.listen(process.env.PORT || 3000, () => {
   console.log('listening on *:3000');
 });
