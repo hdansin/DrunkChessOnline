@@ -16,6 +16,6 @@ Drunk chess is a project that I am making for fun. It plays like normal chess wi
 - [x] Add visual/audio cues that indicate opponent moves and switched pieces
 - [x] Add game won or lost messages
 - [x] Add rematch/new game button
-- [ ] Make it a little pretty
+- [x] Make it a little pretty
 - [ ] Deploy to Netlify or Heroku
 - [ ] Test and test and test and test

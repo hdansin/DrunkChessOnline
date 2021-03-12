@@ -4,7 +4,8 @@
   "description": "Play drunk chess with friends",
   "main": "index.js",
   "scripts": {
-    "test": "node index.js"
+    "test": "node index.js",
+    "build": "rm -rf dist && mkdir dist && rsync -rv * dist --exclude ./dist"
   },
   "keywords": [
     "chess",
