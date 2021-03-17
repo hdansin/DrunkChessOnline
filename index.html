@@ -298,6 +298,19 @@
         if (moveObj) {
           // Emit the move
           socket.emit('move', moveObj, roomID);
+          // Reset square colors
+          let lightSquareList = document.querySelectorAll('.lightSquare');
+          let darkSquareList = document.querySelectorAll('.darkSquare');
+
+          lightSquareList.forEach(function(s) {
+            s.style.backgroundColor = '#f4f4f4'
+          });
+
+          darkSquareList.forEach(function(s) {
+            s.style.backgroundColor = '#6f9bd4';
+          });
+
+
           // Check for game over
           if (chess.game_over()) {
             gameOver.play();
@@ -468,24 +481,11 @@
             randomSquareNode2.replaceChildren();
             randomSquareNode2.appendChild(randomPieceNode1);
 
-            // Add visual and audio cues that show the move and switched pieces
-            randomSquareNode1.animate([
-              {// from
-                backgroundColor: '#ffea93'
-              },
-              {// to
-                backgroundColor: randomSquareNode1.className == 'lightSquare' ? '#f4f4f4' : '#659bd4'
-              }
-             ], 2000);
-
-            randomSquareNode2.animate([
-              {// from
-                backgroundColor: '#ffea93'
-              },
-              {// to
-                backgroundColor: randomSquareNode2.className == 'lightSquare' ? '#f4f4f4' : '#659bd4'
-              }
-            ], 2000);
+            // Change the colors of the moved and switched pieces
+            dropSquare.style.backgroundColor = '#ff6961';
+            randomSquareNode1.style.backgroundColor = '#ffea93';
+            randomSquareNode2.style.backgroundColor = '#ffea93';
+            
           }
         }
       }
@@ -560,6 +560,18 @@
 
       socket.on('opponent-move', function (move) {
         console.log("opponent moved: " + move);
+        // Fix the colors
+        let lightSquareList = document.querySelectorAll('.lightSquare');
+        let darkSquareList = document.querySelectorAll('.darkSquare');
+
+        lightSquareList.forEach(function(s) {
+          s.style.backgroundColor = '#f4f4f4'
+        });
+
+        darkSquareList.forEach(function(s) {
+          s.style.backgroundColor = '#6f9bd4';
+        });
+
         // Play a sound
         // Make the move
         // Do the move visually
@@ -687,14 +699,7 @@
         }
           
         // Highlight the opponent's move
-        dropSquare.animate([
-              {// from
-                backgroundColor: '#ff6961'
-              },
-              {// to
-                backgroundColor: dropSquare.className == 'lightSquare' ? '#f4f4f4' : '#659bd4'
-              }
-        ], 2000);
+        dropSquare.style.backgroundColor = '#ff6961';
 
       });
 
@@ -713,24 +718,11 @@
         randomSquareNode2.replaceChildren();
         randomSquareNode2.appendChild(randomPieceNode1);
 
-        // Add visual and audio cues that show the move and switched pieces
-        randomSquareNode1.animate([
-          {// from
-            backgroundColor: '#ffea93'
-          },
-          {// to
-            backgroundColor: randomSquareNode1.className == 'lightSquare' ? '#f4f4f4' : '#659bd4'
-          }
-        ], 2000);
+        // Change the color's of the squares
+        randomSquareNode1.style.backgroundColor = '#ffea93';
+        randomSquareNode2.style.backgroundColor = '#ffea93';
 
-        randomSquareNode2.animate([
-          {// from
-            backgroundColor: '#ffea93'
-          },
-          {// to
-            backgroundColor: randomSquareNode2.className == 'lightSquare' ? '#f4f4f4' : '#659bd4'
-          }
-        ], 2000);
+       
       });
 
       socket.onAny((event, ...args) => {
