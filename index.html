@@ -128,6 +128,34 @@
       var playerID = socket.id;
       var otherPlayerID = '';
 
+      function renderBoard(playerColor, chessPosition) {
+        // Render pieces on the board based on a chess position provided by chess.board()
+        let boardRows = '';
+        let boardColumns = '';
+        let color = playerColor == 'white' ? 'w' : 'b';
+
+        // Iterate through the postion and place the pieces
+        boardRows = 'abcdefgh';
+        boardColumns = '87654321';
+        for (let i = 0; i < 8; i++) {
+          for (let j = 0; j < 8; j++) {
+            let sq = document.getElementById(boardRows[j] + boardColumns[i]);
+            if (chessPosition[i][j]) {
+              // Place the pieces
+              let chessPiece = chessPosition[i][j];
+              let pieceString = chessPiece.color + chessPiece.type;
+              let draggable = color == chessPiece.color ? 'true' : 'false';
+              let pieceHTML = '<img class="piece" draggable="' + draggable + '" src="./assets/pieces/' + pieceString + '.svg" />';
+              sq.replaceChildren();
+              sq.insertAdjacentHTML('afterbegin', pieceHTML);
+            } else {
+              // square should be empty
+              sq.replaceChildren();
+            }
+          }
+        }
+      }
+
       function drawBoard(board, playerColor) {
         // Draw the board
         // The one creating the game is always white
@@ -266,8 +294,7 @@
       // drag and drop handlers
       function dragstart_handler (event) {
         let parentNode = event.target.parentNode;
-        let piece = event.target;
-        let data = event.target.id + parentNode.id;
+        let data = parentNode.id;
         event.dataTransfer.setData('text/plain', data);
       }
 
@@ -285,7 +312,7 @@
         // Get Id of square and add moved element to it
         data = event.dataTransfer.getData('text/plain');
         console.log(data);
-        let squareFrom = data.slice(2);
+        let squareFrom = data;
         // Make sure the drop square is not a piece
         let dropSquare = event.target.className == "piece" ? event.target.parentNode : event.target;
         let piece = document.getElementById(data.slice(0,2));
@@ -311,126 +338,13 @@
           });
 
 
-          // Check for game over
-          if (chess.game_over()) {
-            gameOver.play();
-            joinHeader.replaceChildren();
-            joinHeader.insertAdjacentHTML('afterbegin', "<h4>You won!</h4>");
-          } else {
-            if (chess.in_check()) {
-              check.play();
-              joinHeader.replaceChildren();
-              joinHeader.insertAdjacentHTML('afterbegin', "<h4>Check!</h4>");
-            } else {
-              normalMove.play();
-              joinHeader.replaceChildren();
-              let lastMove = chess.history().pop();
-              joinHeader.insertAdjacentHTML('afterbegin', "<h4>" + lastMove + "</h4>");
-            }
-          }
-
-          if (moveObj.flags == 'n' || moveObj.flags == 'b') {
-            dropSquare.appendChild(piece);
-          }
-          // clear nodes and insert new piece
-          else if (moveObj.flags == 'c') {
-            let oldChild = dropSquare.firstChild;
-            dropSquare.replaceChild(piece, oldChild);
-          } else {
-            // handle castling
-            if (moveObj.flags == 'k') {
-              // kingside castle
-              if (moveObj.color == 'w') {
-                // Move King
-                dropSquare.appendChild(piece);
-                // Move rook
-                let kCastlePiece = document.getElementById("h1").firstChild;
-                let f1 = document.getElementById("f1");
-                let h1 = document.getElementById("h1");
-                h1.replaceChildren();
-                f1.appendChild(kCastlePiece);
-              } else {
-                // Move King
-                dropSquare.appendChild(piece);
-                // Move rook
-                let kCastlePiece = document.getElementById("h8").firstChild;
-                let f8 = document.getElementById("f8");
-                let h8 = document.getElementById("h8");
-                h8.replaceChildren();
-                f8.appendChild(kCastlePiece);
-              }
-            } else if (moveObj.flags == 'q') {
-              // queenside castle
-              if (moveObj.color == 'w') {
-                // Move King
-                dropSquare.appendChild(piece);
-                // Move rook
-                let qCastlePiece = document.getElementById("a1").firstChild;
-                let d1 = document.getElementById("d1");
-                let a1 = document.getElementById("a1");
-                a1.replaceChildren();
-                d1.appendChild(qCastlePiece);
-              } else {
-                // Move King
-                dropSquare.appendChild(piece);
-                // Move rook
-                let qCastlePiece = document.getElementById("a8").firstChild;
-                let d8 = document.getElementById("d8");
-                let a8 = document.getElementById("a8");
-                a8.replaceChildren();
-                d8.appendChild(qCastlePiece);
-              }
-              // handle en passant
-            } else if (moveObj.flags == 'e') {
-              dropSquare.appendChild(piece);
-              if (moveObj.color == 'w') {
-                //white
-                let sq = document.getElementById(dropSquare.id[0] + (Number(dropSquare.id[1]) - 1));
-                sq.replaceChildren();
-              } else {
-                // black
-                let sq = document.getElementById(dropSquare.id[0] + (Number(dropSquare.id[1]) + 1));
-                sq.replaceChildren();
-              }
-              // handle promotion
-            } else if (moveObj.flags[1] == 'p') {
-              console.log("promotion");
-              let queen = '';
-              let fromNode = document.getElementById(squareFrom);
-              let numQueens = 1;
-              let boardFen = chess.fen();
-              // white 
-              if (moveObj.color == 'w') {
-                for (let i = 0; i < boardFen.length; i++) {
-                  if (boardFen[i] === ' ') {
-                    i = boardFen.length;
-                  } else if (boardFen[i] == 'Q') {
-                    numQueens++;
-                  }
-                }
-                queen = '<img id="Q' + numQueens + '" class="piece" src="./assets/pieces/wq.svg"/>';
-                fromNode.replaceChildren();
-                dropSquare.replaceChildren();
-                dropSquare.insertAdjacentHTML('afterbegin', queen);
-              } else {
-                // black
-                for (let i = 0; i < boardFen.length; i++) {
-                  if (boardFen[i] === ' ') {
-                    i = boardFen.length;
-                  } else if (boardFen[i] == 'q') {
-                    numQueens++;
-                  }
-                }
-                queen = '<img id="q' + numQueens + '" class="piece" src="./assets/pieces/bq.svg"/>';
-                fromNode.replaceChildren();
-                dropSquare.replaceChildren();
-                dropSquare.insertAdjacentHTML('afterbegin', queen);
-              }
-            } 
-          }
-          // Perform the switch using chess.get and chess.put, then get the new FEN and load and emit it.
-          // Then do the switch visually
+                   // Render the new board on screen
           const boardContainer = document.getElementById('board-container');
+          renderBoard(playerPieceColor, chess.board());
+
+          // Highlight the move
+          dropSquare.style.backgroundColor = '#ff6961';
+         // Perform the switch using chess.get and chess.put, then get the new FEN and load and emit it.
           const squareNodes = boardContainer.childNodes;
           const pieceColor = moveObj.color;
           let coordArray = [];
@@ -482,11 +396,28 @@
             randomSquareNode2.appendChild(randomPieceNode1);
 
             // Change the colors of the moved and switched pieces
-            dropSquare.style.backgroundColor = '#ff6961';
             randomSquareNode1.style.backgroundColor = '#ffea93';
             randomSquareNode2.style.backgroundColor = '#ffea93';
             
           }
+          // Check for game over and checks and play correct sounds
+         if (chess.game_over()) {
+           gameOver.play();
+           joinHeader.replaceChildren();
+           joinHeader.insertAdjacentHTML('afterbegin', "<h4>You won!</h4>");
+         } else {
+           if (chess.in_check()) {
+             check.play();
+             joinHeader.replaceChildren();
+             joinHeader.insertAdjacentHTML('afterbegin', "<h4>Check!</h4>");
+           } else {
+             normalMove.play();
+             joinHeader.replaceChildren();
+             let lastMove = chess.history().pop();
+             joinHeader.insertAdjacentHTML('afterbegin', "<h4>" + lastMove + "</h4>");
+           }
+         }
+
         }
       }
 
@@ -597,106 +528,8 @@
             joinHeader.insertAdjacentHTML('afterbegin', "<h4>" + lastMove + "</h4>");
           }
         }
-        // Do the move
-        if (moveObj.flags == 'n' || moveObj.flags == 'b') {
-          dropSquare.appendChild(piece);
-        }
-        // clear nodes and insert new piece
-        else if (moveObj.flags == 'c') {
-          let oldChild = dropSquare.firstChild;
-          dropSquare.replaceChild(piece, oldChild);
-        } else {
-          // handle castling
-          if (moveObj.flags == 'k') {
-            // kimgside castle
-            if (moveObj.color == 'w') {
-              // Move King
-              dropSquare.appendChild(piece);
-              // Move rook
-              let kCastlePiece = document.getElementById("h1").firstChild;
-              let f1 = document.getElementById("f1");
-              let h1 = document.getElementById("h1");
-              h1.replaceChildren();
-              f1.appendChild(kCastlePiece);
-            } else {
-              // Move King
-              dropSquare.appendChild(piece);
-              // Move rook
-              let kCastlePiece = document.getElementById("h8").firstChild;
-              let f8 = document.getElementById("f8");
-              let h8 = document.getElementById("h8");
-              h8.replaceChildren();
-              f8.appendChild(kCastlePiece);
-            }
-          } else if (moveObj.flags == 'q') {
-            // queenside castle
-            if (moveObj.color == 'w') {
-              // Move King
-              dropSquare.appendChild(piece);
-              // Move rook
-              let qCastlePiece = document.getElementById("a1").firstChild;
-              let d1 = document.getElementById("d1");
-              let a1 = document.getElementById("a1");
-              a1.replaceChildren();
-              d1.appendChild(qCastlePiece);
-            } else {
-              // Move King
-              dropSquare.appendChild(piece);
-              // Move rook
-              let qCastlePiece = document.getElementById("a8").firstChild;
-              let d8 = document.getElementById("d8");
-              let a8 = document.getElementById("a8");
-              a8.replaceChildren();
-              d8.appendChild(qCastlePiece);
-            }
-            // handle en passant
-          } else if (moveObj.flags == 'e') {
-            dropSquare.appendChild(piece);
-            if (moveObj.color == 'w') {
-              //white
-              let sq = document.getElementById(dropSquare.id[0] + (Number(dropSquare.id[1]) - 1));
-              sq.replaceChildren();
-            } else {
-              // black
-              let sq = document.getElementById(dropSquare.id[0] + (Number(dropSquare.id[1]) + 1));
-              sq.replaceChildren();
-            }
-            // handle promotion
-          } else if (moveObj.flags[1] == 'p') {
-            console.log("promotion");
-            let queen = '';
-            let fromNode = document.getElementById(squareFrom);
-            let numQueens = 1;
-            let boardFen = chess.fen();
-            // white 
-            if (moveObj.color == 'w') {
-              for (let i = 0; i < boardFen.length; i++) {
-                if (boardFen[i] === ' ') {
-                  i = boardFen.length;
-                } else if (boardFen[i] == 'Q') {
-                  numQueens++;
-                }
-              }
-              queen = '<img id="Q' + numQueens + '" class="piece" src="./assets/pieces/wq.svg"/>';
-              fromNode.replaceChildren();
-              dropSquare.replaceChildren();
-              dropSquare.insertAdjacentHTML('afterbegin', queen);
-            } else {
-              // black
-              for (let i = 0; i < boardFen.length; i++) {
-                if (boardFen[i] === ' ') {
-                  i = boardFen.length;
-                } else if (boardFen[i] == 'q') {
-                  numQueens++;
-                }
-              }
-              queen = '<img id="q' + numQueens + '" class="piece" src="./assets/pieces/bq.svg"/>';
-              fromNode.replaceChildren();
-              dropSquare.replaceChildren();
-              dropSquare.insertAdjacentHTML('afterbegin', queen);
-            }
-          } 
-        }
+        // Do the move visually
+        renderBoard(playerPieceColor, chess.board());
           
         // Highlight the opponent's move
         dropSquare.style.backgroundColor = '#ff6961';
