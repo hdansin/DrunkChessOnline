@@ -18,7 +18,7 @@ var ID = function () { // Credit for this function to gordonbrander on Github
   // Math.random should be unique because of its seeding algorithm.
   // Convert it to base 36 (numbers + letters), and grab the first 9 characters
   // after the decimal.
-  return '_' + Math.random().toString(36).substr(2, 9);
+  return Math.random().toString(36).substr(2, 9);
 };
 
 app.use('/assets', express.static(__dirname + '/assets'));

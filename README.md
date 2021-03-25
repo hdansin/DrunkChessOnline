@@ -20,5 +20,10 @@ Try out the alpha version on [Heroku](https://drunk-chess.herokuapp.com)
 - [x] Add rematch/new game button
 - [x] Make it a little pretty
 - [x] Deploy to Heroku
-- [ ] Refactor visual piece placement code (hopefully make it less buggy)
+- [x] Refactor visual piece placement code (hopefully make it less buggy)
+- [ ] Add ability to move pieces by clicking (alternative to drag and drop)
+- [ ] Make it mobile friendly
+- [ ] Make it better looking on smaller screens
+- [ ] Make the game creation and join experience more user friendly
+  - [ ] Add clipboard button for join code
 - [ ] Test and test and test and test

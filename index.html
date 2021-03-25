@@ -47,8 +47,14 @@
         height: 640px;
         display: grid;
         grid-template-columns: repeat(8, 1fr);
+
+        -moz-user-select: none;
+        -webkit-user-select: none;
+        -ms-user-select: none;
+        user-select: none;
       }
 
+      
       #create-game-button {
         padding: 10px;
       }
@@ -86,6 +92,32 @@
         height: 80px;
         width: auto;
       }
+
+      @media screen and (max-height: 920px) {
+        #board-container {
+          width: 480px;
+          height: 480px;
+        }
+
+        .piece {
+          height: 60px;
+          width: auto;
+        }
+      }
+
+      @media screen and (max-height: 760px) {
+        #board-container {
+          width: 370px;
+          height: 370px;
+        }
+
+        .piece {
+          height: 45px;
+          width: auto;
+        }
+      }
+
+
     </style>
   </head>
   <body>
