@@ -21,7 +21,7 @@ Try out the alpha version on [Heroku](https://drunk-chess.herokuapp.com)
 - [x] Make it a little pretty
 - [x] Deploy to Heroku
 - [x] Refactor visual piece placement code (hopefully make it less buggy)
-- [ ] Add ability to move pieces by clicking (alternative to drag and drop)
+- [x] Add ability to move pieces by clicking (alternative to drag and drop)
 - [ ] Make it mobile friendly
 - [ ] Make it better looking on smaller screens
 - [ ] Make the game creation and join experience more user friendly

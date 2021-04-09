@@ -101,9 +101,11 @@
 
       .dot {
         position: absolute;
-        height: 10px;
-        width: 10px;
-        background-color: #a3f5a2;
+        z-index: 3;
+        height: 3em;
+        width: 3em;
+        background-color: #98eb96;
+        opacity: 0.6;
         border-radius: 50%;
 
       }
@@ -362,13 +364,9 @@
            move = legalMoves[i].slice(legalMoves[i].length - 2);
                      console.log(move);
 
-           // Check for promotion
+           // Check for special notation
            for (let j = 0; j < legalMoves[i].length; j++) {
-             if (legalMoves[i][j] == '=') {
-                     move = legalMoves[i].slice((j - 2), j); 
-                     console.log(move);
-             } 
-             // and castling
+             // castling
              if (legalMoves[i][j] == '-') {
                if (legalMoves[i].length > 3) {
                  // queenside
@@ -377,10 +375,16 @@
                  move = playerPieceColor == 'white' ? 'g1' : 'g8';
                }
              }
-             // and check
-             if (legalMoves[i][j] == '+') {
+             // check/mate
+             if (legalMoves[i][j] == '+' || legalMoves[i][j] == '#') {
                move = legalMoves[i].slice((j - 2), j);
              }
+             // promotion
+             if (legalMoves[i][j] == '=') {
+               move = legalMoves[i].slice((j - 2), j); 
+               console.log(move);
+             } 
+
            }
 
           
@@ -388,14 +392,136 @@
            move = legalMoves[i];
          }
          let sq = document.getElementById(move);
-         sq.insertAdjacentHTML('afterbegin', '<span class="dot"></span>');
+         sq.insertAdjacentHTML('afterbegin', '<span id="' + legalMoves[i] + '" onclick="moveClick(event)" class="dot"></span>');
        }
       }
 
+      // Fires when a user clicks on a dot to make a move
+      function moveClick(event) {
+        console.log(event.target.id);
+        // Remove dots
+        let span = document.querySelector('.dot');
+        if (span) {
+          let spans = document.querySelectorAll('.dot');
+          spans.forEach(function(s) {
+            s.remove(); 
+          });
+        }
+
+        // Reset square colors
+        let lightSquareList = document.querySelectorAll('.lightSquare');
+        let darkSquareList = document.querySelectorAll('.darkSquare');
+
+        lightSquareList.forEach(function(s) {
+          s.style.backgroundColor = '#f4f4f4'
+        });
+
+        darkSquareList.forEach(function(s) {
+          s.style.backgroundColor = '#6f9bd4';
+        });
+
+        // Do the move on the game board
+        let moveObj = chess.move(event.target.id);
+        let toSquare = document.getElementById(moveObj.to);
+
+        // emit the move
+        socket.emit('move', moveObj, roomID);
+
+        // Render the new board on screen
+        const boardContainer = document.getElementById('board-container');
+        renderBoard(playerPieceColor, chess.board());
+
+        // Highlight the move
+        toSquare.style.backgroundColor = '#ff6961';
+        // Perform the switch using chess.get and chess.put, then get the new FEN and load and emit it.
+        const squareNodes = boardContainer.childNodes;
+        const pieceColor = moveObj.color;
+        let coordArray = [];
+
+        // First build an array of eligible coordinates to choose from. These will be any piece of the player's color that is not the king or the piece that just moved
+        for (let i = 0; i < squareNodes.length; i++) {
+          let sq = squareNodes[i].getAttribute('id');
+          let p = chess.get(sq);
+          if (p) {
+            if (p.type !== 'k' && p.color == pieceColor && sq !== moveObj.to) {
+              coordArray.push(sq); 
+            }
+          }
+        }
+
+        // Then choose two random coordinates from the array by splicing one from the array, then splicing a second one.
+        // Don't switch if it is only the king and one piece left
+        if (coordArray.length > 1) {
+          let l = coordArray.length;
+          let n = Math.floor(Math.random() * Math.floor(l));
+          let randomCoord1 = coordArray[n];
+          coordArray.splice(n, 1);       
+
+          l = coordArray.length;
+          n = Math.floor(Math.random() * Math.floor(l));
+          let randomCoord2 = coordArray[n];
+          coordArray.splice(n, 1);
+          console.log(randomCoord1, randomCoord2);
+
+          // Then use remove and put to change the board
+          let randomPiece1 = chess.remove(randomCoord1);
+          let randomPiece2 = chess.remove(randomCoord2);
+          chess.put(randomPiece1, randomCoord2);
+          chess.put(randomPiece2, randomCoord1);
+          console.log(chess.ascii());
+          let fen = chess.fen();
+
+          // Emit the coordinates and the new chess fen
+          socket.emit('switch', randomCoord1, randomCoord2, fen, roomID);
+
+          // Then use the coordinates to switch the pieces on the screen
+          let randomSquareNode1 = document.getElementById(randomCoord1);
+          let randomSquareNode2 = document.getElementById(randomCoord2);
+          let randomPieceNode1 = randomSquareNode1.firstChild;
+          let randomPieceNode2 = randomSquareNode2.firstChild;
+          randomSquareNode1.replaceChildren();
+          randomSquareNode1.appendChild(randomPieceNode2);
+          randomSquareNode2.replaceChildren();
+          randomSquareNode2.appendChild(randomPieceNode1);
+
+          // Change the colors of the moved and switched pieces
+          randomSquareNode1.style.backgroundColor = '#ffea93';
+          randomSquareNode2.style.backgroundColor = '#ffea93';
+        }
+        // Check for game over and checks and play correct sounds
+        if (chess.game_over()) {
+          gameOver.play();
+          joinHeader.replaceChildren();
+          joinHeader.insertAdjacentHTML('afterbegin', "<h4>You won!</h4>");
+        } else {
+          if (chess.in_check()) {
+            check.play();
+            joinHeader.replaceChildren();
+            joinHeader.insertAdjacentHTML('afterbegin', "<h4>Check!</h4>");
+          } else {
+            normalMove.play();
+            joinHeader.replaceChildren();
+            let lastMove = chess.history().pop();
+            joinHeader.insertAdjacentHTML('afterbegin', "<h4>" + lastMove + "</h4>");
+          }
+        }
+
+      }
+
       // drag and drop handlers
-      function dragstart_handler (event) {
+      function dragstart_handler(event) {
         let parentNode = event.target.parentNode;
         let data = parentNode.id;
+
+        // Get rid of dots from click actions
+        let span = document.querySelector('.dot');
+        if (span) {
+          let spans = document.querySelectorAll('.dot');
+          spans.forEach(function(s) {
+            s.remove(); 
+          });
+        }
+
         event.dataTransfer.setData('text/plain', data);
       }
 
@@ -410,6 +536,8 @@
       function drop_handler(event) {
         event.preventDefault();
         event.dataTransfer.dropEffect = "move";
+        
+
         // Get Id of square and add moved element to it
         data = event.dataTransfer.getData('text/plain');
         console.log(data);
