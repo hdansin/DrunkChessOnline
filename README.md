@@ -26,4 +26,5 @@ Try out the alpha version on [Heroku](https://drunk-chess.herokuapp.com)
 - [ ] Make it better looking on smaller screens
 - [ ] Make the game creation and join experience more user friendly
   - [ ] Add clipboard button for join code
+  - [ ] Enable players to send a link to friends?
 - [ ] Test and test and test and test

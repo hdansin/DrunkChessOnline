@@ -74,23 +74,38 @@
 
 
       .lightSquare {
+        display: flex;
         width: 1fr;
         height: 1fr;
         color: #000;
         background-color: #f4f4f4;
+        align-items: center;
+        justify-content: center;
       }
 
       .darkSquare {
+        display: flex;
         width: 1fr;
         height: 1fr;
         color: #000;
         background-color: #6f9bd4;
+        align-items: center;
+        justify-content: center;
       }
 
       .piece {
         position: absolute;
         height: 80px;
         width: auto;
+      }
+
+      .dot {
+        position: absolute;
+        height: 10px;
+        width: 10px;
+        background-color: #a3f5a2;
+        border-radius: 50%;
+
       }
 
       @media screen and (max-height: 920px) {
@@ -192,8 +207,8 @@
         // Draw the board
         // The one creating the game is always white
         
-        const lightSquare = '<div ondrop="drop_handler(event)" ondragover="dragover_handler(event)" ondragstart="dragstart_handler(event)" class="lightSquare"';
-        const darkSquare = '<div  ondrop="drop_handler(event)" ondragover="dragover_handler(event)" ondragstart="dragstart_handler(event)" class="darkSquare"';
+        const lightSquare = '<div onclick="click_handler(event)" ondrop="drop_handler(event)" ondragover="dragover_handler(event)" ondragstart="dragstart_handler(event)" class="lightSquare"';
+        const darkSquare = '<div onclick="click_handler(event)" ondrop="drop_handler(event)" ondragover="dragover_handler(event)" ondragstart="dragstart_handler(event)" class="darkSquare"';
         const boardWidth = 8;
         let boardRows = '';
         let boardColumns = '';
@@ -323,6 +338,60 @@
         }
       }
 
+      // Click handler
+      function click_handler(event) {
+        let id = event.target.className == "piece" ? event.target.parentNode.id : event.target.id;
+        console.log(id);
+
+       // Remove dots
+       let span = document.querySelector('.dot');
+       if (span) {
+         let spans = document.querySelectorAll('.dot');
+         spans.forEach(function(s) {
+           s.remove(); 
+         });
+       }
+
+       // Highlight legal moves
+       let legalMoves = chess.moves( {square : id});
+       let moveSquare = '';
+       console.log(legalMoves);
+       for (let i = 0; i < legalMoves.length; i++) {
+         if (legalMoves[i].length > 2){ // Check to make sure not a pawn move        
+           // In most cases the last to characters will be the sq coordinates
+           move = legalMoves[i].slice(legalMoves[i].length - 2);
+                     console.log(move);
+
+           // Check for promotion
+           for (let j = 0; j < legalMoves[i].length; j++) {
+             if (legalMoves[i][j] == '=') {
+                     move = legalMoves[i].slice((j - 2), j); 
+                     console.log(move);
+             } 
+             // and castling
+             if (legalMoves[i][j] == '-') {
+               if (legalMoves[i].length > 3) {
+                 // queenside
+                 move = playerPieceColor == 'white' ? 'c1' : 'c8';
+               } else { //kingside
+                 move = playerPieceColor == 'white' ? 'g1' : 'g8';
+               }
+             }
+             // and check
+             if (legalMoves[i][j] == '+') {
+               move = legalMoves[i].slice((j - 2), j);
+             }
+           }
+
+          
+         } else {
+           move = legalMoves[i];
+         }
+         let sq = document.getElementById(move);
+         sq.insertAdjacentHTML('afterbegin', '<span class="dot"></span>');
+       }
+      }
+
       // drag and drop handlers
       function dragstart_handler (event) {
         let parentNode = event.target.parentNode;
@@ -370,7 +439,7 @@
           });
 
 
-                   // Render the new board on screen
+          // Render the new board on screen
           const boardContainer = document.getElementById('board-container');
           renderBoard(playerPieceColor, chess.board());
 
@@ -452,7 +521,6 @@
 
         }
       }
-
 
       createGameButton.addEventListener('submit', function(e) {
         // Create a game room and add the player to it
