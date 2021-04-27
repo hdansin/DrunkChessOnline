@@ -25,6 +25,13 @@ Try out the alpha version on [Heroku](https://drunk-chess.herokuapp.com)
 - [ ] Make it mobile friendly
 - [ ] Make it better looking on smaller screens
 - [ ] Make the game creation and join experience more user friendly
-  - [ ] Add clipboard button for join code
-  - [ ] Enable players to send a link to friends?
+  - [x] Add copy clipboard button for join code
+  - [ ] Make ui snazzyish
+- [ ] Add bells and whistles
+  - [ ] Show material count
+  - [ ] Record the game
+  - [ ] Give more feedback about which pieces switched
+  - [ ] Make the game over/check indicators fancier
+- [ ] Add ability to play against computer
+  - [ ] incorporate tiny chess ai so the moves aren't just random
 - [ ] Test and test and test and test

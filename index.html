@@ -54,6 +54,19 @@
         user-select: none;
       }
 
+      #form-container {
+        display: flex;
+        justify-content: center;
+        align-content: center;
+      }
+
+      #roomCode {
+       color: #f4f4f4;
+       background-color: #587ca9;
+       font-size: 22px;
+       border-radius: 3px;
+      }
+
       
       #create-game-button {
         padding: 10px;
@@ -141,10 +154,11 @@
     <h1>Drunk Chess</h1>
     <h2>Chess but the pieces are too drunk to remember what they are.</h2>
     <div id="join-code"></div>
-    <div id="board-container">
-      <form id="create-game-button" action=""><button>Create Game</button></form>
+    <div id="board-container"></div>
+    <div id="form-container"> <form id="create-game-button" action=""><button>Create Game</button></form>
       <form id="join-form" action=""><input placeholder="Enter the join code here." id="join-input" autocomplete="off"/><button>Join Game</button></form>
     </div>
+
     <form id="start-over-button"><button>Start Over</button></form>
     <div id="about-section">Made with <a href="https://github.com/jhlywa/chess.js/">chess.js</a> and <a href="https://socket.io">Socket.IO</a>. Sound from <a href="https://www.zapsplat.com">Zapsplat</a>.</div>
     <audio id="game-over" src="./assets/sounds/bubble-game-over.mp3"></audio>
@@ -155,6 +169,7 @@
 
     <script src="/socket.io/socket.io.js"></script>
     <script src="/assets/chessjs/chess.js"></script>
+    <script src="/assets/font-awesome/all.js"></script>
     <script>
       var socket = io();
       var chess = new Chess();
@@ -170,6 +185,7 @@
       var joinForm = document.getElementById('join-form');
       var joinInput = document.getElementById('join-input');
       var boardContainer = document.getElementById('board-container');
+      var formContainer = document.getElementById('form-container');
       var joinHeader = document.getElementById('join-code');
       var joinCode = '';
       var startOverButton = document.getElementById('start-over-button');
@@ -661,6 +677,7 @@
         console.log('Drawing board for white');
         // Remove forms from the container, draw the board and place the pieces
         boardContainer.replaceChildren();
+        drawBoard(boardContainer, playerPieceColor);
       });
 
       joinForm.addEventListener('submit', function(e) {
@@ -689,8 +706,20 @@
       socket.on('creating-room', function(room) {
         console.log("adding header");
         roomID = room;
-        joinHeader.insertAdjacentHTML('afterbegin', '<h4>Join code: <code>' + roomID + '</code>' + '. Send your friend the join code to start playing.</h4>');
+        formContainer.replaceChildren();
+        joinHeader.replaceChildren();
+        joinHeader.insertAdjacentHTML('afterbegin', '<h4>Join code: <input id="roomCode" readonly="true" size="9" value="' + roomID + '"> <button id="copyTo"><i class="far fa-clipboard"></i></button></input>' + '. Send your friend the join code to start playing.</h4>');
+        var copyToButton = document.getElementById("copyTo");
+        copyToButton.addEventListener("click", copyText);
       });
+
+      // Copy text funtion
+      function copyText() {
+        let text = document.getElementById("roomCode");
+        roomCode.select();
+        document.execCommand("copy");
+        alert("join code copied.");
+      }
 
       socket.on('player2-joining', function () {
         console.log("player 2 joined, make the first move");
@@ -789,6 +818,9 @@
       socket.onAny((event, ...args) => {
         console.log(event, args);
       });
+
+      // Display a board on the home page
+      drawBoard(boardContainer, "white");
 
     </script>
   </body>

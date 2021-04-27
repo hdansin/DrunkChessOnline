@@ -6,7 +6,6 @@
   "scripts": {
     "test": "node index.js",
     "start": "node index.js"
-
   },
   "keywords": [
     "chess",
@@ -15,6 +14,7 @@
   "author": "Hunter Dansin",
   "license": "ISC",
   "dependencies": {
+    "@fortawesome/fontawesome-free": "^5.15.3",
     "chess.js": "^0.11.0",
     "express": "^4.17.1",
     "socket.io": "^3.1.1"
